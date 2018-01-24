@@ -9,7 +9,7 @@
 #set -e
 
 CHANNEL_NAME=$1
-: ${CHANNEL_NAME:="mychannel"}
+: ${CHANNEL_NAME:="test_network"}
 echo $CHANNEL_NAME
 
 export FABRIC_ROOT=$PWD/../..
@@ -30,14 +30,21 @@ function replacePrivateKey () {
 	cp docker-compose-e2e-template.yaml docker-compose-e2e.yaml
 
         CURRENT_DIR=$PWD
+
         cd crypto-config/peerOrganizations/org1.example.com/ca/
         PRIV_KEY=$(ls *_sk)
         cd $CURRENT_DIR
         sed $OPTS "s/CA1_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-e2e.yaml
+
         cd crypto-config/peerOrganizations/org2.example.com/ca/
         PRIV_KEY=$(ls *_sk)
         cd $CURRENT_DIR
         sed $OPTS "s/CA2_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-e2e.yaml
+
+        cd crypto-config/peerOrganizations/org3.example.com/ca/
+        PRIV_KEY=$(ls *_sk)
+        cd $CURRENT_DIR
+        sed $OPTS "s/CA3_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-e2e.yaml
 }
 
 ## Generates Org certs using cryptogen tool
@@ -94,11 +101,10 @@ function generateChannelArtifacts() {
 	echo "#######    Generating anchor peer update for Org2MSP   ##########"
 	echo "#################################################################"
 	$CONFIGTXGEN -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
-	echo
 
 	echo
 	echo "#################################################################"
-	echo "#######    Generating anchor peer update for Org2MSP   ##########"
+	echo "#######    Generating anchor peer update for Org3MSP   ##########"
 	echo "#################################################################"
 	$CONFIGTXGEN -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org3MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org3MSP
 	echo
